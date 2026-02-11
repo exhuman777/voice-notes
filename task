@@ -1,0 +1,246 @@
+#!/bin/bash
+# Task CLI for kanban-dump
+# Uses lifeos patterns: whisper-cli transcription, blueprint markdown format
+
+SCRIPT_DIR="$(cd "$(dirname "$0")" && pwd)"
+TASKS_FILE="$SCRIPT_DIR/tasks.json"
+UPLOADS_DIR="$SCRIPT_DIR/uploads"
+TASKS_MD_DIR="$SCRIPT_DIR/tasks-md"
+
+# Whisper setup (same as lifeos)
+WHISPER_PATH="/opt/homebrew/bin/whisper-cli"
+FFMPEG_PATH="/opt/homebrew/bin/ffmpeg"
+MODEL_PATH="$HOME/.claude1/local-stt-mcp  Local Speech-to-Text MCP Server/models/ggml-base.bin"
+
+[ -f "$TASKS_FILE" ] || echo "[]" > "$TASKS_FILE"
+[ -d "$UPLOADS_DIR" ] || mkdir -p "$UPLOADS_DIR"
+
+transcribe_audio() {
+  local file="$1"
+  local ext="${file##*.}"
+  local wav_file="/tmp/kanban_$(date +%s).wav"
+
+  if [ ! -f "$WHISPER_PATH" ] || [ ! -f "$MODEL_PATH" ]; then
+    echo "[Audio file - whisper not configured]"
+    return
+  fi
+
+  # Convert to WAV if needed
+  if [ "$ext" != "wav" ]; then
+    "$FFMPEG_PATH" -y -i "$file" -ar 16000 -ac 1 "$wav_file" 2>/dev/null
+  else
+    wav_file="$file"
+  fi
+
+  # Transcribe
+  "$WHISPER_PATH" -m "$MODEL_PATH" -l pl -f "$wav_file" --no-timestamps 2>/dev/null
+
+  # Cleanup
+  [ "$wav_file" != "$file" ] && rm -f "$wav_file"
+}
+
+case "$1" in
+  add|a)
+    shift
+    TITLE="$*"
+    [ -z "$TITLE" ] && { echo "Usage: task add <title>"; exit 1; }
+
+    ID=$(uuidgen | tr '[:upper:]' '[:lower:]')
+    DATE=$(date -u +"%Y-%m-%dT%H:%M:%SZ")
+
+    python3 -c "
+import json
+with open('$TASKS_FILE', 'r') as f: tasks = json.load(f)
+tasks.append({'id':'$ID','title':'''$TITLE''','status':'todo','createdAt':'$DATE'})
+with open('$TASKS_FILE', 'w') as f: json.dump(tasks, f, indent=2)
+"
+    echo "✓ Added: $TITLE"
+    ;;
+
+  voice|v)
+    # Add voice note: task voice /path/to/audio.m4a
+    FILE="$2"
+    [ -z "$FILE" ] || [ ! -f "$FILE" ] && { echo "Usage: task voice <audio-file>"; exit 1; }
+
+    echo "Transcribing..."
+    TRANSCRIPTION=$(transcribe_audio "$FILE")
+
+    # Copy file to uploads
+    FILENAME=$(basename "$FILE")
+    TIMESTAMP=$(date +%s)
+    SAVED_AS="${TIMESTAMP}-${FILENAME}"
+    cp "$FILE" "$UPLOADS_DIR/$SAVED_AS"
+
+    ID=$(uuidgen | tr '[:upper:]' '[:lower:]')
+    DATE=$(date -u +"%Y-%m-%dT%H:%M:%SZ")
+
+    python3 -c "
+import json
+with open('$TASKS_FILE', 'r') as f: tasks = json.load(f)
+tasks.append({
+    'id':'$ID',
+    'title':'$FILENAME',
+    'description':'''$TRANSCRIPTION''',
+    'transcription':'''$TRANSCRIPTION''',
+    'status':'todo',
+    'filePath':'/api/files/$SAVED_AS',
+    'fileName':'$FILENAME',
+    'fileType':'audio',
+    'createdAt':'$DATE'
+})
+with open('$TASKS_FILE', 'w') as f: json.dump(tasks, f, indent=2)
+"
+    echo "✓ Added voice task: $FILENAME"
+    echo "Transcription: ${TRANSCRIPTION:0:100}..."
+    ;;
+
+  file|f)
+    # Add file as task
+    FILE="$2"
+    [ -z "$FILE" ] || [ ! -f "$FILE" ] && { echo "Usage: task file <path>"; exit 1; }
+
+    FILENAME=$(basename "$FILE")
+    TIMESTAMP=$(date +%s)
+    SAVED_AS="${TIMESTAMP}-${FILENAME}"
+    cp "$FILE" "$UPLOADS_DIR/$SAVED_AS"
+
+    ID=$(uuidgen | tr '[:upper:]' '[:lower:]')
+    DATE=$(date -u +"%Y-%m-%dT%H:%M:%SZ")
+
+    # Detect file type
+    EXT="${FILENAME##*.}"
+    case "$EXT" in
+      jpg|jpeg|png|gif|webp) FTYPE="image" ;;
+      mp3|wav|m4a|ogg) FTYPE="audio" ;;
+      mp4|mov|webm) FTYPE="video" ;;
+      pdf) FTYPE="pdf" ;;
+      *) FTYPE="other" ;;
+    esac
+
+    # Auto-transcribe audio
+    TRANSCRIPTION=""
+    if [ "$FTYPE" = "audio" ]; then
+      echo "Transcribing..."
+      TRANSCRIPTION=$(transcribe_audio "$FILE")
+    fi
+
+    python3 -c "
+import json
+with open('$TASKS_FILE', 'r') as f: tasks = json.load(f)
+tasks.append({
+    'id':'$ID',
+    'title':'$FILENAME',
+    'description':'''$TRANSCRIPTION''' if '''$TRANSCRIPTION''' else None,
+    'transcription':'''$TRANSCRIPTION''' if '''$TRANSCRIPTION''' else None,
+    'status':'todo',
+    'filePath':'/api/files/$SAVED_AS',
+    'fileName':'$FILENAME',
+    'fileType':'$FTYPE',
+    'createdAt':'$DATE'
+})
+with open('$TASKS_FILE', 'w') as f: json.dump(tasks, f, indent=2)
+"
+    echo "✓ Added: $FILENAME"
+    [ -n "$TRANSCRIPTION" ] && echo "Transcription: ${TRANSCRIPTION:0:100}..."
+    ;;
+
+  list|ls|l)
+    python3 -c "
+import json
+with open('$TASKS_FILE', 'r') as f: tasks = json.load(f)
+for status in ['todo', 'in_progress', 'done']:
+    items = [t for t in tasks if t.get('status') == status]
+    if items:
+        print(f'\n{status.upper().replace(\"_\", \" \")} ({len(items)})')
+        for t in items:
+            prefix = '📎 ' if t.get('fileName') else ''
+            print(f\"  [{t['id'][:8]}] {prefix}{t['title']}\")
+"
+    ;;
+
+  done|d)
+    ID_PREFIX="$2"
+    [ -z "$ID_PREFIX" ] && { echo "Usage: task done <id>"; exit 1; }
+    python3 -c "
+import json
+with open('$TASKS_FILE', 'r') as f: tasks = json.load(f)
+for t in tasks:
+    if t['id'].startswith('$ID_PREFIX'):
+        t['status'] = 'done'
+        print(f\"✓ Done: {t['title']}\")
+        break
+else: print('Task not found')
+with open('$TASKS_FILE', 'w') as f: json.dump(tasks, f, indent=2)
+"
+    ;;
+
+  progress|p|wip)
+    ID_PREFIX="$2"
+    [ -z "$ID_PREFIX" ] && { echo "Usage: task progress <id>"; exit 1; }
+    python3 -c "
+import json
+with open('$TASKS_FILE', 'r') as f: tasks = json.load(f)
+for t in tasks:
+    if t['id'].startswith('$ID_PREFIX'):
+        t['status'] = 'in_progress'
+        print(f\"→ In progress: {t['title']}\")
+        break
+with open('$TASKS_FILE', 'w') as f: json.dump(tasks, f, indent=2)
+"
+    ;;
+
+  export|e)
+    # Export to markdown (lifeos blueprint format)
+    mkdir -p "$TASKS_MD_DIR"
+    python3 -c "
+import json, os
+with open('$TASKS_FILE', 'r') as f: tasks = json.load(f)
+for t in tasks:
+    date = t.get('createdAt', '')[:10]
+    slug = ''.join(c if c.isalnum() else '-' for c in t['title'].lower())[:40]
+    fname = f'{date}-{slug}.md'
+    md = f'''# Task: {t['title']}
+date: {date}
+status: {t['status']}
+project: kanban-dump
+{f\"file: {t['fileName']}\" if t.get('fileName') else ''}
+
+## Description
+{t.get('transcription') or t.get('description') or 'Task from dropped file.'}
+'''
+    with open(f'$TASKS_MD_DIR/{fname}', 'w') as f: f.write(md)
+    print(f'✓ {fname}')
+"
+    echo "Exported to $TASKS_MD_DIR/"
+    ;;
+
+  rm|delete)
+    ID_PREFIX="$2"
+    [ -z "$ID_PREFIX" ] && { echo "Usage: task rm <id>"; exit 1; }
+    python3 -c "
+import json
+with open('$TASKS_FILE', 'r') as f: tasks = json.load(f)
+orig_len = len(tasks)
+tasks = [t for t in tasks if not t['id'].startswith('$ID_PREFIX')]
+if len(tasks) < orig_len:
+    print('✓ Deleted')
+else:
+    print('Task not found')
+with open('$TASKS_FILE', 'w') as f: json.dump(tasks, f, indent=2)
+"
+    ;;
+
+  *)
+    echo "task - kanban CLI (whisper-cli + lifeos patterns)"
+    echo ""
+    echo "Usage:"
+    echo "  task add <title>       Add text task"
+    echo "  task voice <file>      Add voice note (transcribed)"
+    echo "  task file <path>       Add any file as task"
+    echo "  task list              Show all tasks"
+    echo "  task done <id>         Mark complete"
+    echo "  task progress <id>     Mark in progress"
+    echo "  task rm <id>           Delete task"
+    echo "  task export            Export to markdown (blueprint format)"
+    ;;
+esac
