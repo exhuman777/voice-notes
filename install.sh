@@ -42,14 +42,33 @@ echo ""
 echo "Installing dependencies..."
 npm install
 
-# Download whisper model if not exists
+# Find or download whisper model
 MODEL_DIR="$HOME/.whisper-models"
-MODEL_FILE="$MODEL_DIR/ggml-small.bin"
-if [ ! -f "$MODEL_FILE" ]; then
+MODEL_FILE=""
+
+# Check common locations for existing model
+for loc in \
+    "$MODEL_DIR/ggml-small.bin" \
+    "$MODEL_DIR/ggml-base.bin" \
+    "$HOME/.claude1/local-stt-mcp"*/models/ggml-small.bin \
+    "$HOME/.claude1/local-stt-mcp"*/models/ggml-base.bin \
+    /opt/homebrew/share/whisper-cpp/models/ggml-small.bin \
+    /opt/homebrew/share/whisper-cpp/models/ggml-base.bin
+do
+    if [ -f "$loc" ]; then
+        MODEL_FILE="$loc"
+        echo "✓ Found model: $MODEL_FILE"
+        break
+    fi
+done
+
+# Download if not found
+if [ -z "$MODEL_FILE" ]; then
     echo ""
     echo "Downloading Whisper model (small, 466MB)..."
     mkdir -p "$MODEL_DIR"
-    curl -L -o "$MODEL_FILE" \
+    MODEL_FILE="$MODEL_DIR/ggml-small.bin"
+    curl -L --retry 3 -o "$MODEL_FILE" \
         https://huggingface.co/ggerganov/whisper.cpp/resolve/main/ggml-small.bin
 fi
 
