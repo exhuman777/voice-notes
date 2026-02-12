@@ -48,9 +48,9 @@ export async function POST(req: NextRequest) {
       )
     }
 
-    // Run whisper-cli (auto-detects language)
+    // Run whisper-cli with Polish
     const { stdout } = await execAsync(
-      `"${WHISPER_PATH}" -m "${MODEL_PATH}" -f "${wavPath}" --no-timestamps`,
+      `"${WHISPER_PATH}" -m "${MODEL_PATH}" -l pl -f "${wavPath}" --no-timestamps`,
       { timeout: 300000 }
     )
 
