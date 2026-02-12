@@ -8,10 +8,10 @@ import os from 'os'
 const execAsync = promisify(exec)
 const UPLOADS_DIR = path.join(process.cwd(), 'uploads')
 
-// Use the same setup as lifeos
-const WHISPER_PATH = '/opt/homebrew/bin/whisper-cli'
-const FFMPEG_PATH = '/opt/homebrew/bin/ffmpeg'
-const MODEL_PATH = path.join(os.homedir(), '.claude1/local-stt-mcp  Local Speech-to-Text MCP Server/models/ggml-base.bin')
+// Configure these paths for your system (see README)
+const WHISPER_PATH = process.env.WHISPER_PATH || '/opt/homebrew/bin/whisper-cli'
+const FFMPEG_PATH = process.env.FFMPEG_PATH || '/opt/homebrew/bin/ffmpeg'
+const MODEL_PATH = process.env.WHISPER_MODEL || path.join(os.homedir(), '.whisper-models/ggml-base.bin')
 
 export async function POST(req: NextRequest) {
   const { fileName } = await req.json()
@@ -48,9 +48,9 @@ export async function POST(req: NextRequest) {
       )
     }
 
-    // Run whisper-cli with same settings as lifeos
+    // Run whisper-cli (auto-detects language)
     const { stdout } = await execAsync(
-      `"${WHISPER_PATH}" -m "${MODEL_PATH}" -l pl -f "${wavPath}" --no-timestamps`,
+      `"${WHISPER_PATH}" -m "${MODEL_PATH}" -f "${wavPath}" --no-timestamps`,
       { timeout: 300000 }
     )
 

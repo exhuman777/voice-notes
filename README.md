@@ -72,17 +72,18 @@ npm install
 # Skonfiguruj ścieżkę whisper (edytuj jeśli inna)
 ```
 
-Edit `src/app/api/record/route.ts` and `src/app/api/transcribe/route.ts`:
+**Option A: Environment variables / Zmienne środowiskowe:**
 
-Edytuj `src/app/api/record/route.ts` i `src/app/api/transcribe/route.ts`:
-
-```typescript
-// Change these paths to match your setup
-// Zmień te ścieżki na swoje
-const WHISPER_CLI = '/opt/homebrew/bin/whisper-cli'  // or /usr/local/bin/whisper-cli
-const WHISPER_MODEL = path.join(os.homedir(), '.whisper-models/ggml-base.bin')
-const FFMPEG = '/opt/homebrew/bin/ffmpeg'  // or /usr/bin/ffmpeg
+Create `.env.local`:
+```bash
+WHISPER_PATH=/opt/homebrew/bin/whisper-cli
+WHISPER_MODEL=/Users/you/.whisper-models/ggml-base.bin
+FFMPEG_PATH=/opt/homebrew/bin/ffmpeg
 ```
+
+**Option B: Edit source / Edytuj źródło:**
+
+Edit `src/app/api/record/route.ts` and `src/app/api/transcribe/route.ts`
 
 ## Run / Uruchomienie
 

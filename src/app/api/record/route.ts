@@ -8,9 +8,10 @@ import os from 'os'
 
 const execAsync = promisify(exec)
 const UPLOADS_DIR = path.join(process.cwd(), 'uploads')
-const FFMPEG_PATH = '/opt/homebrew/bin/ffmpeg'
-const WHISPER_PATH = '/opt/homebrew/bin/whisper-cli'
-const MODEL_PATH = path.join(os.homedir(), '.claude1/local-stt-mcp  Local Speech-to-Text MCP Server/models/ggml-base.bin')
+// Configure these paths for your system (see README)
+const FFMPEG_PATH = process.env.FFMPEG_PATH || '/opt/homebrew/bin/ffmpeg'
+const WHISPER_PATH = process.env.WHISPER_PATH || '/opt/homebrew/bin/whisper-cli'
+const MODEL_PATH = process.env.WHISPER_MODEL || path.join(os.homedir(), '.whisper-models/ggml-base.bin')
 
 export async function POST(req: NextRequest) {
   const formData = await req.formData()
@@ -45,7 +46,7 @@ export async function POST(req: NextRequest) {
   let transcription = ''
   try {
     await execAsync(
-      `"${WHISPER_PATH}" -m "${MODEL_PATH}" -l pl -f "${wavPath}" -otxt -of "${wavPath.replace('.wav', '')}"`,
+      `"${WHISPER_PATH}" -m "${MODEL_PATH}" -f "${wavPath}" -otxt -of "${wavPath.replace('.wav', '')}"`,
       { timeout: 180000 }
     )
     const { stdout } = await execAsync(`cat "${wavPath.replace('.wav', '.txt')}"`)
