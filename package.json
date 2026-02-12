@@ -1,9 +1,9 @@
 {
-  "name": "kanban-dump",
-  "version": "0.1.0",
+  "name": "voice-notes",
+  "version": "1.0.0",
   "private": true,
   "scripts": {
-    "dev": "next dev -p 3034",
+    "dev": "next dev",
     "build": "next build",
     "start": "next start",
     "lint": "eslint",
