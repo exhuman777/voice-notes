@@ -1,0 +1,71 @@
+#!/bin/bash
+# Voice Notes - One-liner installer
+# Usage: curl -fsSL https://raw.githubusercontent.com/exhuman777/voice-notes/main/install.sh | bash
+
+set -e
+
+echo "🎙 Voice Notes Installer"
+echo "========================"
+
+# Check dependencies
+check_cmd() {
+    if ! command -v "$1" &>/dev/null; then
+        echo "❌ Missing: $1"
+        return 1
+    fi
+    echo "✓ $1"
+}
+
+echo ""
+echo "Checking dependencies..."
+check_cmd node || { echo "Install Node.js: https://nodejs.org"; exit 1; }
+check_cmd npm || { echo "Install npm with Node.js"; exit 1; }
+check_cmd ffmpeg || { echo "Install: brew install ffmpeg"; exit 1; }
+check_cmd whisper-cli || { echo "Install: brew install whisper-cpp"; exit 1; }
+
+# Clone repo
+INSTALL_DIR="$HOME/voice-notes"
+if [ -d "$INSTALL_DIR" ]; then
+    echo ""
+    echo "Updating existing installation..."
+    cd "$INSTALL_DIR"
+    git pull
+else
+    echo ""
+    echo "Cloning repository..."
+    git clone https://github.com/exhuman777/voice-notes.git "$INSTALL_DIR"
+    cd "$INSTALL_DIR"
+fi
+
+# Install npm dependencies
+echo ""
+echo "Installing dependencies..."
+npm install
+
+# Download whisper model if not exists
+MODEL_DIR="$HOME/.whisper-models"
+MODEL_FILE="$MODEL_DIR/ggml-small.bin"
+if [ ! -f "$MODEL_FILE" ]; then
+    echo ""
+    echo "Downloading Whisper model (small, 466MB)..."
+    mkdir -p "$MODEL_DIR"
+    curl -L -o "$MODEL_FILE" \
+        https://huggingface.co/ggerganov/whisper.cpp/resolve/main/ggml-small.bin
+fi
+
+# Create .env.local
+echo ""
+echo "Creating configuration..."
+cat > .env.local << EOF
+WHISPER_PATH=$(which whisper-cli)
+WHISPER_MODEL=$MODEL_FILE
+FFMPEG_PATH=$(which ffmpeg)
+EOF
+
+echo ""
+echo "✅ Installation complete!"
+echo ""
+echo "To start Voice Notes:"
+echo "  cd $INSTALL_DIR && npm run dev"
+echo ""
+echo "Then open: http://localhost:3000"

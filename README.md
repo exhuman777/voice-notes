@@ -4,6 +4,16 @@ Record, transcribe, and organize voice notes with automatic speech-to-text.
 
 Nagrywaj, transkrybuj i organizuj notatki głosowe z automatycznym rozpoznawaniem mowy.
 
+## Quick Install / Szybka instalacja
+
+```bash
+# macOS (requires Homebrew)
+brew install whisper-cpp ffmpeg node
+curl -fsSL https://raw.githubusercontent.com/exhuman777/voice-notes/main/install.sh | bash
+```
+
+Then run: `cd ~/voice-notes && npm run dev` → http://localhost:3000
+
 ## Features / Funkcje
 
 - **Record** voice notes directly in browser / Nagrywaj notatki głosowe w przeglądarce
