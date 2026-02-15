@@ -14,7 +14,81 @@
 ╚═╝  ╚═══╝ ╚═════╝    ╚═╝   ╚══════╝╚══════╝
 ```
 
-# Voice Notes
+<p align="center">
+  <strong>Voice Notes</strong>
+</p>
+
+<p align="center">
+  <em>Record, Transcribe, Organize with Whisper</em>
+</p>
+
+<p align="center">
+  <a href="#setup">Docs</a>
+</p>
+
+<p align="center">
+  <img src="https://img.shields.io/badge/framework-Next.js%2016-purple" alt="Next.js 16" />
+  <img src="https://img.shields.io/badge/ai-Whisper-brightgreen" alt="Whisper" />
+  <img src="https://img.shields.io/badge/lang-TypeScript-blue" alt="TypeScript" />
+  <img src="https://img.shields.io/badge/ui-Kanban%20Board-orange" alt="Kanban Board" />
+</p>
+
+---
+
+**Voice in. Organized notes out.**
+
+Record voice notes, auto-transcribe with OpenAI Whisper, organize on a drag-and-drop kanban board. Export to multiple formats. File watching for bulk processing.
+
+---
+
+## File Map
+
+```
+  voice-notes/
+  CLAUDE.md
+  README.md
+  eslint.config.mjs
+  install.sh
+  next.config.ts
+  package-lock.json
+  package.json
+  postcss.config.mjs
+  task
+  tsconfig.json
+  public/
+    file.svg
+    globe.svg
+    next.svg
+    vercel.svg
+    window.svg
+  scripts/
+    cleanup-audio.sh
+    watch-uploads.ts
+  src/
+    app/
+      favicon.ico
+      globals.css
+      layout.tsx
+      page.tsx
+      api/
+        export/
+        files/
+        record/
+        tasks/
+        transcribe/
+        upload/
+    components/
+      Board.tsx
+      Column.tsx
+      DropZone.tsx
+      FilePreview.tsx
+      TaskCard.tsx
+      VoiceRecorder.tsx
+      ui/
+  ... (6 more files)
+```
+
+---
 
 Record, transcribe, and organize voice notes with automatic speech-to-text.
 
