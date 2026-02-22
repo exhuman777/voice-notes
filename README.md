@@ -1,11 +1,11 @@
 ```
 ██╗   ██╗ ██████╗ ██╗ ██████╗███████╗
 ██║   ██║██╔═══██╗██║██╔════╝██╔════╝
-██║   ██║██║   ██║██║██║     █████╗  
-╚██╗ ██╔╝██║   ██║██║██║     ██╔══╝  
+██║   ██║██║   ██║██║██║     █████╗
+╚██╗ ██╔╝██║   ██║██║██║     ██╔══╝
  ╚████╔╝ ╚██████╔╝██║╚██████╗███████╗
   ╚═══╝   ╚═════╝ ╚═╝ ╚═════╝╚══════╝
-                                     
+
 ███╗   ██╗ ██████╗ ████████╗███████╗███████╗
 ████╗  ██║██╔═══██╗╚══██╔══╝██╔════╝██╔════╝
 ██╔██╗ ██║██║   ██║   ██║   █████╗  ███████╗
@@ -15,270 +15,181 @@
 ```
 
 <p align="center">
-  <strong>Voice Notes</strong>
-</p>
-
-<p align="center">
-  <em>Record, Transcribe, Organize with Whisper</em>
-</p>
-
-<p align="center">
-  <a href="#setup">Docs</a>
+  <strong>Voice Notes</strong> — Record, transcribe, organize. 100% local, 100% free.
 </p>
 
 <p align="center">
   <img src="https://img.shields.io/badge/framework-Next.js%2016-purple" alt="Next.js 16" />
-  <img src="https://img.shields.io/badge/ai-Whisper-brightgreen" alt="Whisper" />
+  <img src="https://img.shields.io/badge/ai-Whisper_(local)-brightgreen" alt="Whisper" />
   <img src="https://img.shields.io/badge/lang-TypeScript-blue" alt="TypeScript" />
-  <img src="https://img.shields.io/badge/ui-Kanban%20Board-orange" alt="Kanban Board" />
+  <img src="https://img.shields.io/badge/license-MIT-yellow" alt="MIT" />
 </p>
 
 ---
 
-**Voice in. Organized notes out.**
+Record voice notes in browser, auto-transcribe with Whisper locally (no API keys, no cloud, no cost), organize on a drag-and-drop kanban board. Single click any note to copy text — paste straight into prompts.
 
-Record voice notes, auto-transcribe with OpenAI Whisper, organize on a drag-and-drop kanban board. Export to multiple formats. File watching for bulk processing.
-
----
-
-## File Map
-
-```
-  voice-notes/
-  CLAUDE.md
-  README.md
-  eslint.config.mjs
-  install.sh
-  next.config.ts
-  package-lock.json
-  package.json
-  postcss.config.mjs
-  task
-  tsconfig.json
-  public/
-    file.svg
-    globe.svg
-    next.svg
-    vercel.svg
-    window.svg
-  scripts/
-    cleanup-audio.sh
-    watch-uploads.ts
-  src/
-    app/
-      favicon.ico
-      globals.css
-      layout.tsx
-      page.tsx
-      api/
-        export/
-        files/
-        record/
-        tasks/
-        transcribe/
-        upload/
-    components/
-      Board.tsx
-      Column.tsx
-      DropZone.tsx
-      FilePreview.tsx
-      TaskCard.tsx
-      VoiceRecorder.tsx
-      ui/
-  ... (6 more files)
-```
-
----
-
-Record, transcribe, and organize voice notes with automatic speech-to-text.
-
-Nagrywaj, transkrybuj i organizuj notatki głosowe z automatycznym rozpoznawaniem mowy.
-
-## Quick Install / Szybka instalacja
+## Quick Install (macOS)
 
 ```bash
-# macOS (requires Homebrew)
 brew install whisper-cpp ffmpeg node
 curl -fsSL https://raw.githubusercontent.com/exhuman777/voice-notes/main/install.sh | bash
 ```
 
-Then run: `cd ~/voice-notes && npm run dev` → http://localhost:3000
+Then: `cd ~/voice-notes && npm run dev` and open http://localhost:6767
 
-## Features / Funkcje
+## Features
 
-- **Record** voice notes directly in browser / Nagrywaj notatki głosowe w przeglądarce
-- **Automatic transcription** using Whisper / Automatyczna transkrypcja przez Whisper
-- **Custom groups** - organize notes your way / Własne grupy - organizuj po swojemu
-- **Drag & drop** between groups / Przeciągaj między grupami
-- **File upload** - drop any file / Wrzuć dowolny plik
+- **Record** voice notes directly in browser
+- **Instant transcription** — Whisper runs locally, no API needed
+- **Single click to copy** — tap any note to copy text to clipboard
+- **Double click to edit** — opens full preview panel
+- **Language selector** — Polish + English by default, 25+ more available
+- **Drag & drop** between groups (Work, Personal, Prompts, Ideas)
+- **File upload** — drop audio files for transcription
+- **Custom groups** — add your own categories
 
-## Requirements / Wymagania
+## Requirements
 
 - Node.js 18+
-- [whisper.cpp](https://github.com/ggerganov/whisper.cpp) - local speech-to-text
-- FFmpeg - audio conversion
+- [whisper.cpp](https://github.com/ggerganov/whisper.cpp) — local speech-to-text
+- FFmpeg — audio conversion
 
-### macOS (Homebrew)
+### macOS
 
 ```bash
-# Install whisper.cpp
-brew install whisper-cpp
-
-# Install FFmpeg
-brew install ffmpeg
-
-# Download Whisper model (base is recommended, ~140MB)
-# Pobierz model Whisper (base zalecany, ~140MB)
-mkdir -p ~/.whisper-models
-cd ~/.whisper-models
-curl -LO https://huggingface.co/ggerganov/whisper.cpp/resolve/main/ggml-base.bin
+brew install whisper-cpp ffmpeg
 ```
 
 ### Linux (Ubuntu/Debian)
 
 ```bash
-# Install FFmpeg
 sudo apt update && sudo apt install ffmpeg
 
 # Build whisper.cpp from source
 git clone https://github.com/ggerganov/whisper.cpp.git
-cd whisper.cpp
-make
+cd whisper.cpp && make
 sudo cp main /usr/local/bin/whisper-cli
-
-# Download model
-mkdir -p ~/.whisper-models
-curl -L -o ~/.whisper-models/ggml-base.bin \
-  https://huggingface.co/ggerganov/whisper.cpp/resolve/main/ggml-base.bin
 ```
 
-### Windows (WSL recommended / WSL zalecane)
+### Windows
 
 Use WSL2 with Ubuntu, then follow Linux instructions.
 
-Użyj WSL2 z Ubuntu, potem postępuj jak dla Linuxa.
-
-## Setup / Instalacja
+## Setup
 
 ```bash
-# Clone repository / Sklonuj repozytorium
-git clone https://github.com/anthropics/voice-notes.git
+git clone https://github.com/exhuman777/voice-notes.git
 cd voice-notes
-
-# Install dependencies / Zainstaluj zależności
 npm install
-
-# Configure whisper path (edit if different)
-# Skonfiguruj ścieżkę whisper (edytuj jeśli inna)
 ```
 
-**Option A: Environment variables / Zmienne środowiskowe:**
+Download a Whisper model (~142MB):
+
+```bash
+mkdir -p ~/.whisper-models
+curl -LO --output-dir ~/.whisper-models \
+  https://huggingface.co/ggerganov/whisper.cpp/resolve/main/ggml-base.bin
+```
 
 Create `.env.local`:
+
 ```bash
-WHISPER_PATH=/opt/homebrew/bin/whisper-cli
-WHISPER_MODEL=/Users/you/.whisper-models/ggml-base.bin
-FFMPEG_PATH=/opt/homebrew/bin/ffmpeg
+WHISPER_PATH=/opt/homebrew/bin/whisper-cli    # macOS, or: /usr/local/bin/whisper-cli
+WHISPER_MODEL=/Users/YOU/.whisper-models/ggml-base.bin
+FFMPEG_PATH=/opt/homebrew/bin/ffmpeg          # macOS, or: /usr/bin/ffmpeg
 ```
 
-**Option B: Edit source / Edytuj źródło:**
-
-Edit `src/app/api/record/route.ts` and `src/app/api/transcribe/route.ts`
-
-## Run / Uruchomienie
+## Run
 
 ```bash
-# Development
 npm run dev
-
-# Open browser / Otwórz przeglądarkę
-open http://localhost:3034
 ```
 
-## Usage / Użycie
+Open http://localhost:6767
 
-1. Click **Record** to start recording / Kliknij **Record** żeby nagrać
-2. Click **Stop** when done / Kliknij **Stop** gdy skończysz
-3. Select a group for your note / Wybierz grupę dla notatki
-4. Wait for transcription / Poczekaj na transkrypcję
-5. Drag notes between groups / Przeciągaj notatki między grupami
+## Usage
 
-## Language Support / Obsługa języków
+1. Click **Record** to start recording
+2. Click **Stop** when done
+3. Select a group for your note
+4. Transcription happens automatically
+5. **Single click** any note to copy text to clipboard
+6. **Double click** to open preview/edit panel
+7. Drag notes between groups to organize
 
-Whisper automatically detects language (Polish, English, and 90+ others).
+## Language
 
-Whisper automatycznie wykrywa język (polski, angielski i 90+ innych).
+Default: Polish. Switch to English or 25+ other languages via the language button in the header. Your choice is saved automatically.
 
-For better Polish transcription, use larger model:
-
-Dla lepszej transkrypcji po polsku, użyj większego modelu:
+For better quality with non-English languages, use a larger model:
 
 ```bash
-# Download large model (~3GB) / Pobierz duży model (~3GB)
-curl -LO https://huggingface.co/ggerganov/whisper.cpp/resolve/main/ggml-large-v3.bin
+# Small model (~466MB, better quality)
+curl -LO --output-dir ~/.whisper-models \
+  https://huggingface.co/ggerganov/whisper.cpp/resolve/main/ggml-small.bin
+
+# Large model (~3GB, best quality)
+curl -LO --output-dir ~/.whisper-models \
+  https://huggingface.co/ggerganov/whisper.cpp/resolve/main/ggml-large-v3.bin
 ```
 
-## Models / Modele
+Update `WHISPER_MODEL` in `.env.local` to point to the new model.
 
 | Model | Size | Quality | Speed |
 |-------|------|---------|-------|
-| tiny | 75MB | ★★☆☆☆ | Fastest |
-| base | 142MB | ★★★☆☆ | Fast |
-| small | 466MB | ★★★★☆ | Medium |
-| medium | 1.5GB | ★★★★☆ | Slow |
-| large-v3 | 3GB | ★★★★★ | Slowest |
+| tiny | 75MB | OK | Fastest |
+| base | 142MB | Good | Fast |
+| small | 466MB | Great | Medium |
+| medium | 1.5GB | Excellent | Slow |
+| large-v3 | 3GB | Best | Slowest |
 
-## File Structure / Struktura plików
+## File Structure
 
 ```
 voice-notes/
 ├── src/
 │   ├── app/
 │   │   ├── api/
-│   │   │   ├── record/     # Recording endpoint
-│   │   │   ├── transcribe/ # Transcription endpoint
-│   │   │   ├── tasks/      # Tasks CRUD
-│   │   │   ├── upload/     # File upload
-│   │   │   └── files/      # File serving
-│   │   ├── layout.tsx      # App layout + CSS
-│   │   └── page.tsx        # Main UI
+│   │   │   ├── record/      # Recording + transcription
+│   │   │   ├── transcribe/  # File transcription
+│   │   │   ├── tasks/       # Tasks CRUD
+│   │   │   ├── upload/      # File upload
+│   │   │   └── files/       # File serving
+│   │   ├── layout.tsx       # App layout + styles
+│   │   └── page.tsx         # Main UI
 │   └── lib/
-│       ├── store.ts        # Zustand state
-│       └── utils.ts        # Helpers
-├── tasks.json              # Tasks database
-├── uploads/                # Uploaded files
+│       ├── store.ts         # Zustand state
+│       └── utils.ts         # Helpers
+├── tasks.json               # Local database
+├── uploads/                 # Audio files
+├── install.sh               # One-liner installer
 └── package.json
 ```
 
 ## Tech Stack
 
-- Next.js 15 (App Router)
+- Next.js 16 (App Router + Turbopack)
 - React 19
-- Zustand (state)
-- whisper.cpp (transcription)
+- Zustand (state management)
+- whisper.cpp (local transcription)
 - FFmpeg (audio conversion)
 
-## Troubleshooting / Rozwiązywanie problemów
+## Troubleshooting
 
-**Transcription not working / Transkrypcja nie działa:**
+**Transcription not working:**
 ```bash
-# Check whisper installation / Sprawdź instalację whisper
-which whisper-cli
-whisper-cli --help
-
-# Check model exists / Sprawdź czy model istnieje
-ls -la ~/.whisper-models/
+which whisper-cli        # Should show a path
+ls ~/.whisper-models/    # Should show ggml-base.bin
 ```
 
-**Empty recordings / Puste nagrania:**
-- Allow microphone access in browser / Zezwól na mikrofon w przeglądarce
-- Check browser console for errors / Sprawdź konsolę przeglądarki
+**Empty recordings:**
+- Allow microphone access when browser asks
+- Check browser console (F12) for errors
 
-**FFmpeg errors / Błędy FFmpeg:**
-```bash
-which ffmpeg
-ffmpeg -version
-```
+**Slow transcription:**
+- Use `ggml-base.bin` model (fastest with good quality)
+- Avoid `auto` language detection — pick a specific language
 
 ## License
 
