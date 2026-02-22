@@ -15,7 +15,7 @@ const MODEL_PATH = process.env.WHISPER_MODEL || path.join(os.homedir(), '.whispe
 
 export async function POST(req: NextRequest) {
   const { fileName, language } = await req.json()
-  const lang = language || 'auto'
+  const lang = language || 'pl'
 
   if (!fileName) {
     return NextResponse.json({ error: 'No filename provided' }, { status: 400 })

@@ -4,10 +4,12 @@ import { useEffect, useState, useCallback, useRef } from 'react'
 import { Task, useTaskStore } from '@/lib/store'
 import { isAudioFile, getFileType } from '@/lib/utils'
 
-const LANGUAGES = [
-  { code: 'auto', label: 'Auto-detect' },
-  { code: 'en', label: 'English' },
+const PRIMARY_LANGUAGES = [
   { code: 'pl', label: 'Polski' },
+  { code: 'en', label: 'English' },
+]
+
+const MORE_LANGUAGES = [
   { code: 'es', label: 'Español' },
   { code: 'fr', label: 'Français' },
   { code: 'de', label: 'Deutsch' },
@@ -37,6 +39,8 @@ const LANGUAGES = [
   { code: 'ms', label: 'Bahasa Melayu' },
 ]
 
+const ALL_LANGUAGES = [...PRIMARY_LANGUAGES, ...MORE_LANGUAGES]
+
 export default function Home() {
   const { tasks, groups, setTasks, addTask, moveTask, deleteTask, updateTask, addGroup, deleteGroup } = useTaskStore()
   const [selectedTask, setSelectedTask] = useState<Task | null>(null)
@@ -48,8 +52,9 @@ export default function Home() {
   const [showGroupPicker, setShowGroupPicker] = useState(false)
   const [pendingBlob, setPendingBlob] = useState<Blob | null>(null)
   const [newGroupName, setNewGroupName] = useState('')
-  const [language, setLanguage] = useState('auto')
+  const [language, setLanguage] = useState('pl')
   const [showLangPanel, setShowLangPanel] = useState(false)
+  const [showMoreLangs, setShowMoreLangs] = useState(false)
   const [copiedId, setCopiedId] = useState<string | null>(null)
   const clickTimers = useRef<Record<string, ReturnType<typeof setTimeout>>>({})
 
@@ -243,7 +248,7 @@ export default function Home() {
   const formatTime = (s: number) => `${Math.floor(s / 60)}:${(s % 60).toString().padStart(2, '0')}`
 
   const sortedTasks = [...tasks].sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime())
-  const currentLang = LANGUAGES.find(l => l.code === language)
+  const currentLang = ALL_LANGUAGES.find(l => l.code === language)
 
   return (
     <main className="app">
@@ -263,16 +268,35 @@ export default function Home() {
               <div className="lang-panel">
                 <div className="lang-panel-title">Transcription Language</div>
                 <div className="lang-grid">
-                  {LANGUAGES.map((l) => (
+                  {PRIMARY_LANGUAGES.map((l) => (
                     <button
                       key={l.code}
-                      className={`lang-option ${language === l.code ? 'active' : ''}`}
+                      className={`lang-option primary ${language === l.code ? 'active' : ''}`}
                       onClick={() => changeLang(l.code)}
                     >
                       {l.label}
                     </button>
                   ))}
                 </div>
+                <button
+                  className="lang-more-btn"
+                  onClick={() => setShowMoreLangs(!showMoreLangs)}
+                >
+                  {showMoreLangs ? 'Less' : 'More languages...'}
+                </button>
+                {showMoreLangs && (
+                  <div className="lang-grid">
+                    {MORE_LANGUAGES.map((l) => (
+                      <button
+                        key={l.code}
+                        className={`lang-option ${language === l.code ? 'active' : ''}`}
+                        onClick={() => changeLang(l.code)}
+                      >
+                        {l.label}
+                      </button>
+                    ))}
+                  </div>
+                )}
               </div>
             )}
           </div>

@@ -427,6 +427,22 @@ export default function RootLayout({
             border-color: #3b82f6;
             color: #3b82f6;
           }
+          .lang-option.primary {
+            padding: 0.6rem 1.2rem;
+            font-size: 0.9rem;
+            font-weight: 500;
+          }
+          .lang-more-btn {
+            background: none;
+            border: none;
+            color: #555;
+            font-size: 0.75rem;
+            cursor: pointer;
+            padding: 0.5rem 0 0.25rem;
+            width: 100%;
+            text-align: left;
+          }
+          .lang-more-btn:hover { color: #888; }
 
           /* Copy Feedback */
           .task-card.copied {

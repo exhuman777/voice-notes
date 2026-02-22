@@ -16,7 +16,7 @@ const MODEL_PATH = process.env.WHISPER_MODEL || path.join(os.homedir(), '.whispe
 export async function POST(req: NextRequest) {
   const formData = await req.formData()
   const audio = formData.get('audio') as Blob
-  const lang = (formData.get('language') as string) || 'auto'
+  const lang = (formData.get('language') as string) || 'pl'
 
   if (!audio) {
     return NextResponse.json({ error: 'No audio' }, { status: 400 })
