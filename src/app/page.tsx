@@ -1,8 +1,41 @@
 'use client'
 
-import { useEffect, useState, useCallback } from 'react'
+import { useEffect, useState, useCallback, useRef } from 'react'
 import { Task, useTaskStore } from '@/lib/store'
 import { isAudioFile, getFileType } from '@/lib/utils'
+
+const LANGUAGES = [
+  { code: 'auto', label: 'Auto-detect' },
+  { code: 'en', label: 'English' },
+  { code: 'pl', label: 'Polski' },
+  { code: 'es', label: 'Español' },
+  { code: 'fr', label: 'Français' },
+  { code: 'de', label: 'Deutsch' },
+  { code: 'it', label: 'Italiano' },
+  { code: 'pt', label: 'Português' },
+  { code: 'ru', label: 'Русский' },
+  { code: 'uk', label: 'Українська' },
+  { code: 'zh', label: '中文' },
+  { code: 'ja', label: '日本語' },
+  { code: 'ko', label: '한국어' },
+  { code: 'ar', label: 'العربية' },
+  { code: 'hi', label: 'हिन्दी' },
+  { code: 'tr', label: 'Türkçe' },
+  { code: 'nl', label: 'Nederlands' },
+  { code: 'sv', label: 'Svenska' },
+  { code: 'da', label: 'Dansk' },
+  { code: 'no', label: 'Norsk' },
+  { code: 'fi', label: 'Suomi' },
+  { code: 'cs', label: 'Čeština' },
+  { code: 'ro', label: 'Română' },
+  { code: 'hu', label: 'Magyar' },
+  { code: 'el', label: 'Ελληνικά' },
+  { code: 'he', label: 'עברית' },
+  { code: 'th', label: 'ไทย' },
+  { code: 'vi', label: 'Tiếng Việt' },
+  { code: 'id', label: 'Bahasa Indonesia' },
+  { code: 'ms', label: 'Bahasa Melayu' },
+]
 
 export default function Home() {
   const { tasks, groups, setTasks, addTask, moveTask, deleteTask, updateTask, addGroup, deleteGroup } = useTaskStore()
@@ -15,10 +48,25 @@ export default function Home() {
   const [showGroupPicker, setShowGroupPicker] = useState(false)
   const [pendingBlob, setPendingBlob] = useState<Blob | null>(null)
   const [newGroupName, setNewGroupName] = useState('')
+  const [language, setLanguage] = useState('auto')
+  const [showLangPanel, setShowLangPanel] = useState(false)
+  const [copiedId, setCopiedId] = useState<string | null>(null)
+  const clickTimers = useRef<Record<string, ReturnType<typeof setTimeout>>>({})
+
+  // Load saved language preference
+  useEffect(() => {
+    const saved = localStorage.getItem('voice-notes-lang')
+    if (saved) setLanguage(saved)
+  }, [])
+
+  const changeLang = (code: string) => {
+    setLanguage(code)
+    localStorage.setItem('voice-notes-lang', code)
+    setShowLangPanel(false)
+  }
 
   useEffect(() => {
     fetch('/api/tasks').then((res) => res.json()).then((data) => {
-      // Migrate old status-based tasks to group-based
       const migrated = data.map((t: any) => ({
         ...t,
         group: t.group || (t.status === 'done' ? 'Done' : t.status === 'in_progress' ? 'Work' : 'Inbox'),
@@ -35,11 +83,32 @@ export default function Home() {
     return () => clearInterval(interval)
   }, [isRecording])
 
+  const handleCardClick = (task: Task) => {
+    if (clickTimers.current[task.id]) {
+      // Double click — open preview
+      clearTimeout(clickTimers.current[task.id])
+      delete clickTimers.current[task.id]
+      setSelectedTask(task)
+    } else {
+      // Wait to distinguish single vs double
+      clickTimers.current[task.id] = setTimeout(() => {
+        delete clickTimers.current[task.id]
+        // Single click — copy
+        const text = task.transcription || task.description || task.title
+        navigator.clipboard.writeText(text).then(() => {
+          setCopiedId(task.id)
+          setTimeout(() => setCopiedId(null), 1200)
+        })
+      }, 250)
+    }
+  }
+
   const saveRecording = async (blob: Blob, group: string) => {
     setIsUploading(true)
     try {
       const formData = new FormData()
       formData.append('audio', blob, 'recording.webm')
+      formData.append('language', language)
       const res = await fetch('/api/record', { method: 'POST', body: formData })
       const { filePath, fileName, transcription } = await res.json()
 
@@ -113,7 +182,7 @@ export default function Home() {
         const transcribeRes = await fetch('/api/transcribe', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ fileName: savedAs }),
+          body: JSON.stringify({ fileName: savedAs, language }),
         })
         transcription = (await transcribeRes.json()).transcription
       }
@@ -135,7 +204,7 @@ export default function Home() {
     } finally {
       setIsUploading(false)
     }
-  }, [addTask])
+  }, [addTask, language])
 
   const handleDrop = (e: React.DragEvent, targetGroup?: string) => {
     e.preventDefault()
@@ -173,26 +242,54 @@ export default function Home() {
 
   const formatTime = (s: number) => `${Math.floor(s / 60)}:${(s % 60).toString().padStart(2, '0')}`
 
-  // Sort tasks by newest first
   const sortedTasks = [...tasks].sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime())
+  const currentLang = LANGUAGES.find(l => l.code === language)
 
   return (
     <main className="app">
       {/* Header */}
       <header className="header">
-        <h1>🎙 Voice Notes</h1>
+        <h1>Voice Notes</h1>
         <div className="header-actions">
+          <div className="lang-wrapper">
+            <button
+              className="btn btn-lang"
+              onClick={() => setShowLangPanel(!showLangPanel)}
+              title="Transcription language"
+            >
+              {currentLang?.label || 'Auto'}
+            </button>
+            {showLangPanel && (
+              <div className="lang-panel">
+                <div className="lang-panel-title">Transcription Language</div>
+                <div className="lang-grid">
+                  {LANGUAGES.map((l) => (
+                    <button
+                      key={l.code}
+                      className={`lang-option ${language === l.code ? 'active' : ''}`}
+                      onClick={() => changeLang(l.code)}
+                    >
+                      {l.label}
+                    </button>
+                  ))}
+                </div>
+              </div>
+            )}
+          </div>
           {isRecording ? (
             <button className="btn btn-stop" onClick={stopRecording}>
-              ⏹ {formatTime(recordingTime)}
+              Stop {formatTime(recordingTime)}
             </button>
           ) : (
             <button className="btn btn-record" onClick={startRecording} disabled={isUploading}>
-              🎤 Record
+              Record
             </button>
           )}
         </div>
       </header>
+
+      {/* Click outside to close lang panel */}
+      {showLangPanel && <div className="lang-backdrop" onClick={() => setShowLangPanel(false)} />}
 
       {/* Group Picker Modal */}
       {showGroupPicker && (
@@ -226,7 +323,7 @@ export default function Home() {
               />
               <button onClick={handleAddGroup} disabled={!newGroupName.trim()}>+</button>
             </div>
-            {isUploading && <p className="uploading">⏳ Transcribing...</p>}
+            {isUploading && <p className="uploading">Transcribing...</p>}
           </div>
         </div>
       )}
@@ -254,12 +351,15 @@ export default function Home() {
                 {groupTasks.map((task) => (
                   <div
                     key={task.id}
-                    className={`task-card ${selectedTask?.id === task.id ? 'selected' : ''} ${draggedTask?.id === task.id ? 'dragging' : ''}`}
+                    className={`task-card ${selectedTask?.id === task.id ? 'selected' : ''} ${draggedTask?.id === task.id ? 'dragging' : ''} ${copiedId === task.id ? 'copied' : ''}`}
                     draggable
                     onDragStart={() => setDraggedTask(task)}
                     onDragEnd={() => setDraggedTask(null)}
-                    onClick={() => setSelectedTask(task)}
+                    onClick={() => handleCardClick(task)}
                   >
+                    {copiedId === task.id && (
+                      <div className="copied-overlay">Copied!</div>
+                    )}
                     <div className="task-title">{task.title}</div>
                     {task.transcription && (
                       <div className="task-preview">{task.transcription}</div>
@@ -353,7 +453,7 @@ export default function Home() {
           </select>
 
           <button className="btn-delete" onClick={() => handleDelete(selectedTask)}>
-            🗑 Delete
+            Delete
           </button>
         </div>
       )}

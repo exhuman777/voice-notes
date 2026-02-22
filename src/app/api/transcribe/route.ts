@@ -14,7 +14,8 @@ const FFMPEG_PATH = process.env.FFMPEG_PATH || '/opt/homebrew/bin/ffmpeg'
 const MODEL_PATH = process.env.WHISPER_MODEL || path.join(os.homedir(), '.whisper-models/ggml-base.bin')
 
 export async function POST(req: NextRequest) {
-  const { fileName } = await req.json()
+  const { fileName, language } = await req.json()
+  const lang = language || 'auto'
 
   if (!fileName) {
     return NextResponse.json({ error: 'No filename provided' }, { status: 400 })
@@ -48,9 +49,8 @@ export async function POST(req: NextRequest) {
       )
     }
 
-    // Run whisper-cli with Polish
     const { stdout } = await execAsync(
-      `"${WHISPER_PATH}" -m "${MODEL_PATH}" -l pl -f "${wavPath}" --no-timestamps`,
+      `"${WHISPER_PATH}" -m "${MODEL_PATH}" -l ${lang} -f "${wavPath}" --no-timestamps`,
       { timeout: 300000 }
     )
 

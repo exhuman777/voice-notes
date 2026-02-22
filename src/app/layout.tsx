@@ -349,6 +349,108 @@ export default function RootLayout({
             margin-top: auto;
           }
           .btn-delete:hover { background: #2a1a1a; }
+
+          /* Language Selector */
+          .header-actions {
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+          }
+
+          .lang-wrapper {
+            position: relative;
+          }
+
+          .btn-lang {
+            background: #1a1a2e;
+            color: #aaa;
+            border: 1px solid #333;
+            padding: 0.5rem 1rem;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 0.85rem;
+            transition: all 0.2s;
+          }
+          .btn-lang:hover { background: #2a2a3e; color: #fff; }
+
+          .lang-backdrop {
+            position: fixed;
+            inset: 0;
+            z-index: 59;
+          }
+
+          .lang-panel {
+            position: absolute;
+            right: 0;
+            top: calc(100% + 0.5rem);
+            background: #111;
+            border: 1px solid #222;
+            border-radius: 12px;
+            padding: 1rem;
+            width: 320px;
+            max-height: 400px;
+            overflow-y: auto;
+            z-index: 60;
+            box-shadow: 0 8px 32px rgba(0,0,0,0.5);
+          }
+
+          .lang-panel-title {
+            font-size: 0.8rem;
+            color: #666;
+            margin-bottom: 0.75rem;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+          }
+
+          .lang-grid {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 0.4rem;
+          }
+
+          .lang-option {
+            background: #1a1a1a;
+            border: 1px solid #222;
+            color: #ccc;
+            padding: 0.4rem 0.75rem;
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: 0.8rem;
+            transition: all 0.15s;
+          }
+          .lang-option:hover {
+            border-color: #444;
+            color: #fff;
+          }
+          .lang-option.active {
+            background: #1a2a4e;
+            border-color: #3b82f6;
+            color: #3b82f6;
+          }
+
+          /* Copy Feedback */
+          .task-card.copied {
+            border-color: #22c55e !important;
+          }
+
+          .copied-overlay {
+            position: absolute;
+            inset: 0;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background: rgba(34, 197, 94, 0.1);
+            border-radius: 7px;
+            color: #22c55e;
+            font-size: 0.8rem;
+            font-weight: 600;
+            pointer-events: none;
+            z-index: 5;
+          }
+
+          .task-card {
+            position: relative;
+          }
         `}</style>
       </head>
       <body>

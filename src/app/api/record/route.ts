@@ -16,6 +16,7 @@ const MODEL_PATH = process.env.WHISPER_MODEL || path.join(os.homedir(), '.whispe
 export async function POST(req: NextRequest) {
   const formData = await req.formData()
   const audio = formData.get('audio') as Blob
+  const lang = (formData.get('language') as string) || 'auto'
 
   if (!audio) {
     return NextResponse.json({ error: 'No audio' }, { status: 400 })
@@ -46,7 +47,7 @@ export async function POST(req: NextRequest) {
   let transcription = ''
   try {
     await execAsync(
-      `"${WHISPER_PATH}" -m "${MODEL_PATH}" -l pl -f "${wavPath}" -otxt -of "${wavPath.replace('.wav', '')}"`,
+      `"${WHISPER_PATH}" -m "${MODEL_PATH}" -l ${lang} -f "${wavPath}" -otxt -of "${wavPath.replace('.wav', '')}"`,
       { timeout: 180000 }
     )
     const { stdout } = await execAsync(`cat "${wavPath.replace('.wav', '.txt')}"`)
