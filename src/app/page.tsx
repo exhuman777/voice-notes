@@ -58,10 +58,14 @@ export default function Home() {
   const [copiedId, setCopiedId] = useState<string | null>(null)
   const clickTimers = useRef<Record<string, ReturnType<typeof setTimeout>>>({})
 
-  // Load saved language preference
+  // Load saved language preference (clear stale 'auto' from earlier version)
   useEffect(() => {
     const saved = localStorage.getItem('voice-notes-lang')
-    if (saved) setLanguage(saved)
+    if (saved === 'auto') {
+      localStorage.removeItem('voice-notes-lang')
+    } else if (saved) {
+      setLanguage(saved)
+    }
   }, [])
 
   const changeLang = (code: string) => {
