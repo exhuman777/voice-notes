@@ -78,7 +78,7 @@ export default function Home() {
     fetch('/api/tasks').then((res) => res.json()).then((data) => {
       const migrated = data.map((t: any) => ({
         ...t,
-        group: t.group || (t.status === 'done' ? 'Done' : t.status === 'in_progress' ? 'Work' : 'Inbox'),
+        group: t.group || (t.status === 'done' ? 'Done' : t.status === 'in_progress' ? 'Work' : 'Work'),
       }))
       setTasks(migrated)
     })
@@ -178,7 +178,7 @@ export default function Home() {
     }
   }
 
-  const handleFile = useCallback(async (file: File, group: string = 'Inbox') => {
+  const handleFile = useCallback(async (file: File, group: string = 'Work') => {
     setIsUploading(true)
     try {
       const formData = new FormData()
@@ -229,7 +229,7 @@ export default function Home() {
       return
     }
 
-    Array.from(e.dataTransfer.files).forEach(f => handleFile(f, targetGroup || 'Inbox'))
+    Array.from(e.dataTransfer.files).forEach(f => handleFile(f, targetGroup || 'Work'))
   }
 
   const handleDelete = async (task: Task) => {
@@ -370,7 +370,7 @@ export default function Home() {
               <div className="group-header">
                 <span className="group-name">{group}</span>
                 <span className="group-count">{groupTasks.length}</span>
-                {group !== 'Inbox' && (
+                {group !== 'Work' && (
                   <button className="delete-group" onClick={() => deleteGroup(group)}>×</button>
                 )}
               </div>

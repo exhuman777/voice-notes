@@ -28,7 +28,7 @@ interface TaskStore {
 
 export const useTaskStore = create<TaskStore>((set, get) => ({
   tasks: [],
-  groups: ['Inbox', 'Ideas', 'Work', 'Personal'],
+  groups: ['Work', 'Personal', 'Prompts', 'Ideas'],
 
   setTasks: (tasks) => set({ tasks }),
   setGroups: (groups) => set({ groups }),
@@ -70,7 +70,7 @@ export const useTaskStore = create<TaskStore>((set, get) => ({
   deleteGroup: (name) => {
     set((state) => ({
       groups: state.groups.filter((g) => g !== name),
-      tasks: state.tasks.map((t) => (t.group === name ? { ...t, group: 'Inbox' } : t)),
+      tasks: state.tasks.map((t) => (t.group === name ? { ...t, group: 'Work' } : t)),
     }))
   },
 }))
