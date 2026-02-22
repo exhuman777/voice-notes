@@ -175,6 +175,60 @@ voice-notes/
 - whisper.cpp (local transcription)
 - FFmpeg (audio conversion)
 
+## Deploy on Zo.computer
+
+Voice Notes runs on [Zo.computer](https://zo.computer) as a User Service. Zo gives you a full Linux server with AI — paste these commands into Zo's terminal or ask Zo's AI to run them.
+
+### Step 1: Install dependencies
+
+```bash
+apt-get update -qq && apt-get install -y -qq build-essential cmake
+```
+
+### Step 2: Build whisper.cpp
+
+```bash
+cd /tmp && git clone https://github.com/ggerganov/whisper.cpp.git
+cd /tmp/whisper.cpp && cmake -B build && cmake --build build --config Release -j$(nproc)
+cp /tmp/whisper.cpp/build/bin/whisper-cli /usr/local/bin/whisper-cli
+```
+
+### Step 3: Download model + clone app
+
+```bash
+mkdir -p ~/.whisper-models
+curl -L -o ~/.whisper-models/ggml-base.bin \
+  https://huggingface.co/ggerganov/whisper.cpp/resolve/main/ggml-base.bin
+
+cd ~ && git clone https://github.com/exhuman777/voice-notes.git
+cd voice-notes && npm install
+```
+
+### Step 4: Configure and build
+
+```bash
+cd ~/voice-notes
+cat > .env.local << 'EOF'
+WHISPER_PATH=/usr/local/bin/whisper-cli
+WHISPER_MODEL=/root/.whisper-models/ggml-base.bin
+FFMPEG_PATH=/usr/bin/ffmpeg
+EOF
+
+npm run build
+```
+
+### Step 5: Register as a service
+
+In Zo, register a **User Service**:
+- **Name:** voice-notes
+- **Command:** `cd ~/voice-notes && npx next start -p 6767`
+- **Port:** 6767
+- **Protocol:** HTTP
+
+Your app will be available at `https://voice-notes-YOURHANDLE.zocomputer.io`
+
+> Note: Zo Free tier has 1 service slot. Basic ($18/mo) gives 5 slots.
+
 ## Troubleshooting
 
 **Transcription not working:**
